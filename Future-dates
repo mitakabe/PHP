@@ -1,0 +1,38 @@
+<?php
+date_default_timezone_set('Europe/Sofia');
+
+$numberString = htmlspecialchars($_GET['numbersString']);
+$dateString = htmlspecialchars($_GET['dateString']);
+$patternNumbers = "/([^\d])(?P<numbers>\d+)([^\w])/";
+$patternDate = "/(?P<dates>(\d{4})-(\d{2})-(\d{2}))/";
+preg_match_all($patternNumbers, $numberString, $allNumbers);
+preg_match_all($patternDate, $dateString, $allDate);
+foreach ($allDate['dates'] as $key => $date) {
+    if(!validateDate($date)){
+        unset($allDate['dates'][$key]);
+    }
+}
+
+if(!$allDate['dates']){
+    echo "<p>No dates</p>";
+}
+else {
+    $sumNumber = 0;
+    foreach ($allNumbers['numbers'] as $value) {
+        $sumNumber += $value;
+    }
+    $sumNumber = (int)strrev($sumNumber);
+    echo "<ul>";
+    foreach ($allDate['dates'] as $date) {
+        echo "<li>";
+        $time = DateTime::createFromFormat('Y-m-d', $date);
+        $time->modify('+' . $sumNumber . 'day');
+        echo $time->format('Y-m-d');
+        echo "</li>";
+    }
+    echo "</ul>";
+}
+function validateDate($date){
+    $d = DateTime::createFromFormat('Y-m-d', $date);
+    return $d && $d->format('Y-m-d') == $date;
+}
